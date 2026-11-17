@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.2 — 2026-11-17
+- Skill: Russian trigger phrases; no longer shares "where did my tokens go" with the built-in usage skill — this one is per task, across sessions.
+
 ## 0.2.1 — 2026-11-17
 - `set` says when it replaces an existing limit (one limit per key).
 - A `%` limit line now reads "N% of all your spend; this key is M% of it".

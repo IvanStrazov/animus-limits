@@ -1,6 +1,6 @@
 ---
 name: limits
-description: Token spend per task and per-task limits for Claude Code — where the plan limit went (by journal task, project, day, model), limits like "invest-bot ≤ 30% of my week", and a cost estimate before a big task. Use on /limits, "where did my tokens go", "how much did X cost", "set a limit", or before starting a task the user says is big or expensive.
+description: Token spend broken down by journal task, project, day and model across sessions, plus per-task budgets for Claude Code (limits like "invest-bot ≤ 30% of my week") and a cost estimate before a big task. Prefer this over a generic usage breakdown whenever the question is per task or project, spans sessions, or is about a budget. Use on /limits, "how much did X cost", "which task ate my limit", "set a limit", before a task the user says is big or expensive, or in Russian — «сколько сожрала задача», «куда ушёл лимит», «сколько стоил X», «поставь лимит», «во сколько обойдётся».
 ---
 
 # Limits
