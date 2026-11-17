@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2 — 2026-11-17
+- Skill: when a task is already most of the spend, say a % limit would be OVER from day one and ask about `$`; never switch the limit type or value on your own.
+- Skill: Windows interpreter from ecosystem.json.
+
 ## 0.1.1 — 2026-11-17
 - Skill: a `%` limit is a share of your own spend, not of the plan limit — use `$` for a budget; there is no background warning.
 - Skill: how sessions map to journal tasks (entry during the session or ≤ 30 min after); `estimate` looks back 60 days.

@@ -5,7 +5,7 @@ description: Token spend per task and per-task limits for Claude Code — where 
 
 # Limits
 
-All numbers come from one script: `L` = `python3 "<plugin root>/scripts/limits.py"`, where the plugin root is two levels above this skill's base directory. Use `python` if `python3` is missing (Windows). The script reads transcripts itself; never read transcripts or journals yourself for this.
+All numbers come from one script: `L` = `python3 "<plugin root>/scripts/limits.py"`, where the plugin root is two levels above this skill's base directory. Use `python` if `python3` is missing. On Windows, `python3`/`python` may be Microsoft Store stubs: then use the interpreter and script path from this plugin's `cmd` in `~/.claude/ecosystem.json` (or a start-of-session line), and write paths with forward slashes so a trailing `\` does not eat the closing quote. The script reads transcripts itself; never read transcripts or journals yourself for this.
 
 Unit: API-equivalent USD with prompt caching — a proxy for how fast plan limits drain, not a bill. Say so once when you first show numbers.
 
@@ -16,7 +16,7 @@ Show the table as is, then one or two lines of takeaways (the biggest item, anyt
 
 ## Limits
 `L set <task-or-project> 30%` or `L set <key> '$40'` (fixed), window `--days N` (default 7). `L unset <key>`.
-A `%` limit is relative: the share of *your own* total spend in the window, not of the plan limit (the plan limit is unknown to the script). If the task is most of what you do, it stays "over" however little you spend. When the user means "of my plan" or a budget, use `$`, and say which one you set.
+A `%` limit is relative: the share of *your own* total spend in the window, not of the plan limit (the plan limit is unknown to the script). If the task is most of what you do, it stays "over" however little you spend. When the user means "of my plan" or a budget, use `$`, and say which one you set. If the task is already most of the spend (a % limit would be OVER from day one), say so and ask whether they want `$` instead, proposing a number; never switch the limit type or value on your own.
 `L check` prints only limits at ≥ 80% (`--verbose` for all). Run it whenever this skill is used, and mention any line it prints. There is no background warning: limits are checked only when this skill or `/brief` runs — say so if the user asks to be warned.
 
 ## Before an expensive task
