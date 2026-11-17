@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1 — 2026-11-17
+- `set` says when it replaces an existing limit (one limit per key).
+- A `%` limit line now reads "N% of all your spend; this key is M% of it".
+- Skill: a key that is also a project name counts the whole project; no hooks or settings changes unless asked. Same inside-a-journal rule as animus-journal.
+
 ## 0.2.0 — 2026-11-17
 - `report` shows token totals and output tokens next to $ (overall and per row).
 - `check --at P` warns from P% instead of 80%.

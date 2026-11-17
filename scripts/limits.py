@@ -91,8 +91,27 @@ def money(x):
 _root_cache = {}
 
 
+def _inside_journal(cwd):
+    """A folder inside a journal (~/journal/... or <project>/.journal/...) belongs to that journal,
+    so running a command from there never creates a nested .journal."""
+    try:
+        p = Path(cwd).resolve()
+        g = JOURNAL_GLOBAL.resolve()
+    except (OSError, RuntimeError):
+        return None
+    if p == g or g in p.parents:
+        return JOURNAL_GLOBAL
+    for q in (p, *p.parents):
+        if q.name == ".journal":
+            return q
+    return None
+
+
 def journal_dir(cwd):
     """Same rule as animus-journal: git root/.journal, or the global dir for projectless sessions."""
+    _j = _inside_journal(cwd)
+    if _j is not None:
+        return _j
     if cwd in _root_cache:
         return _root_cache[cwd]
     p = Path(cwd)
@@ -304,9 +323,14 @@ def parse_limit(s):
 
 def cmd_set(a):
     c = load_cfg()
+    old = c["limits"].get(a.key)
     c["limits"][a.key] = dict(parse_limit(a.limit), days=a.days)
     save_cfg(c)
-    print(f"limit {a.key}: {a.limit} per {a.days} days")
+    was = ""
+    if old:  # one limit per key: a new one replaces the old
+        prev = f"{old['share']:.0%}" if "share" in old else money(old["usd"])
+        was = f" (replaced the previous limit {prev} per {old.get('days', 7)} days)"
+    print(f"limit {a.key}: {a.limit} per {a.days} days{was}")
 
 
 def cmd_unset(a):
@@ -340,7 +364,9 @@ def cmd_check(a):
     for key, used, cap, ratio, days, lim in limit_status(c, {}):
         if ratio >= warn or a.verbose:
             mark = "OVER" if ratio >= 1 else ("near" if ratio >= warn else "ok")
-            what = f"{lim['share']:.0%} of total" if "share" in lim else money(lim["usd"])
+            what = (f"{lim['share']:.0%} of all your spend; this key is {used / (cap / lim['share']):.0%} of it"
+                    if "share" in lim and cap else (f"{lim['share']:.0%} of total" if "share" in lim
+                                                    else money(lim["usd"])))
             extra = ("; nothing attributed to it yet: spend reaches a task only via a journal entry with that "
                      "first tag, written during the session or <= 30 min after it") if used == 0 else ""
             print(f"[limits] {mark}: {key} used {money(used)} of {money(cap)} ({ratio:.0%}; limit {what}, {days}d{extra})")
