@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0 — 2026-11-17
+- `report` shows token totals and output tokens next to $ (overall and per row).
+- `check --at P` warns from P% instead of 80%.
+- A limit with nothing attributed says so and explains how spend reaches a task (a journal entry with that first tag).
+
 ## 0.1.2 — 2026-11-17
 - Skill: when a task is already most of the spend, say a % limit would be OVER from day one and ask about `$`; never switch the limit type or value on your own.
 - Skill: Windows interpreter from ecosystem.json.

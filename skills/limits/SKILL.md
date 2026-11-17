@@ -10,14 +10,14 @@ All numbers come from one script: `L` = `python3 "<plugin root>/scripts/limits.p
 Unit: API-equivalent USD with prompt caching — a proxy for how fast plan limits drain, not a bill. Say so once when you first show numbers.
 
 ## Where it went
-`L report` (last 7 days by journal task) · `--by project|day|model` · `--days N` · `--top N`.
+`L report` (last 7 days by journal task, with $ and token columns) · `--by project|day|model` · `--days N` · `--top N`. Token totals include cache reads, which cost ~10% of fresh input: `$` is the better measure of how fast the limit drains. Never compute or estimate token numbers yourself.
 Tasks come from animus-journal entries: a session's responses go to the first tag of the entry written during it or within 30 min after its last response. "(no journal) X" is work in project X with no such entry (for example, recorded a day later) — say so, don't invent a rule.
 Show the table as is, then one or two lines of takeaways (the biggest item, anything surprising). No long commentary.
 
 ## Limits
 `L set <task-or-project> 30%` or `L set <key> '$40'` (fixed), window `--days N` (default 7). `L unset <key>`.
 A `%` limit is relative: the share of *your own* total spend in the window, not of the plan limit (the plan limit is unknown to the script). If the task is most of what you do, it stays "over" however little you spend. When the user means "of my plan" or a budget, use `$`, and say which one you set. If the task is already most of the spend (a % limit would be OVER from day one), say so and ask whether they want `$` instead, proposing a number; never switch the limit type or value on your own.
-`L check` prints only limits at ≥ 80% (`--verbose` for all). Run it whenever this skill is used, and mention any line it prints. There is no background warning: limits are checked only when this skill or `/brief` runs — say so if the user asks to be warned.
+`L check` prints only limits at ≥ 80% (`--at 50` for another threshold, `--verbose` for all). A line saying "nothing attributed to it yet" means no journal entry with that first tag covers the spend — explain that, don't guess at other causes. Run it whenever this skill is used, and mention any line it prints. There is no background warning: limits are checked only when this skill or `/brief` runs — say so if the user asks to be warned.
 
 ## Before an expensive task
 When the user starts something big, or asks what it will cost: `L estimate <task words>` — median/max of past sessions of that task over the last 60 days (`--days N`), model mix, share of a week. With no past sessions, give a rough range from similar tasks and label it a guess.

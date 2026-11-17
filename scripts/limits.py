@@ -13,7 +13,7 @@ Commands:
   report [--days N] [--by task|project|day|model] [--top N]   spend table
   set KEY LIMIT [--days N]     limit for a task tag or project: "30%" of your total, or "$40"
   unset KEY
-  check [--days N]             limits at >= 80%, one line each (silent when all fine)
+  check [--days N] [--at P]    limits at >= 80% (or P%), one line each (silent when all fine)
   estimate TERM...             past sessions of a task: median / max cost, models, requests
   where                        print the config path
 
@@ -186,7 +186,10 @@ def responses(since=None):
                     continue
                 seen.add(mid)
                 out.append({"ts": ts, "session": session, "cwd": d.get("cwd"),
-                            "model": msg.get("model") or "", "cost": cost_of(msg.get("model"), u)})
+                            "model": msg.get("model") or "", "cost": cost_of(msg.get("model"), u),
+                            "tok": sum((u.get(k) or 0) for k in ("input_tokens", "cache_creation_input_tokens",
+                                                                 "cache_read_input_tokens", "output_tokens")),
+                            "out": u.get("output_tokens") or 0})
     for r in out:
         r["cwd"] = r["cwd"] or cwd_of.get(r["session"], "")
     return out
@@ -262,24 +265,29 @@ def group(resps, by):
     g = {}
     for r in resps:
         k = key(r)
-        cost, n, sessions = g.get(k, (0.0, 0, set()))
+        cost, n, sessions, tok, out = g.get(k, (0.0, 0, set(), 0, 0))
         sessions.add(r["session"])
-        g[k] = (cost + r["cost"], n + 1, sessions)
+        g[k] = (cost + r["cost"], n + 1, sessions, tok + r.get("tok", 0), out + r.get("out", 0))
     return g
+
+
+def tokens(n):
+    return f"{n / 1e6:.1f}M" if n >= 1e6 else (f"{n / 1e3:.0f}K" if n >= 1e3 else str(n))
 
 
 def cmd_report(a):
     rs = attribute(responses(window(a.days)))
     total = sum(r["cost"] for r in rs)
     print(f"last {a.days} days: {money(total)} API-equivalent, {len(rs)} responses, "
-          f"{len({r['session'] for r in rs})} sessions")
+          f"{len({r['session'] for r in rs})} sessions, {tokens(sum(r['tok'] for r in rs))} tokens "
+          f"({tokens(sum(r['out'] for r in rs))} output; cache reads count fully here but cost 10%)")
     if not rs:
         return
     g = sorted(group(rs, a.by).items(), key=lambda kv: (kv[0] if a.by == "day" else -kv[1][0]))
     w = max(len(k) for k, _ in g[:a.top]) if a.by != "day" else 10
-    print(f"{a.by:<{w}}  {'cost':>9}  {'share':>5}  {'sessions':>8}")
-    for k, (cost, n, sess) in g[:a.top]:
-        print(f"{k:<{w}}  {money(cost):>9}  {cost / total:>5.0%}  {len(sess):>8}")
+    print(f"{a.by:<{w}}  {'cost':>9}  {'share':>5}  {'sessions':>8}  {'tokens':>7}  {'output':>7}")
+    for k, (cost, n, sess, tok, out) in g[:a.top]:
+        print(f"{k:<{w}}  {money(cost):>9}  {cost / total:>5.0%}  {len(sess):>8}  {tokens(tok):>7}  {tokens(out):>7}")
     if len(g) > a.top:
         rest = sum(v[0] for _, v in g[a.top:])
         print(f"{f'(+{len(g) - a.top} more)':<{w}}  {money(rest):>9}  {rest / total:>5.0%}")
@@ -328,11 +336,14 @@ def cmd_check(a):
     if not c["limits"]:
         print("no limits set (`set KEY 30%`)" if a.verbose else "", end="")
         return
+    warn = (a.at / 100) if a.at else WARN_AT
     for key, used, cap, ratio, days, lim in limit_status(c, {}):
-        if ratio >= WARN_AT or a.verbose:
-            mark = "OVER" if ratio >= 1 else ("near" if ratio >= WARN_AT else "ok")
+        if ratio >= warn or a.verbose:
+            mark = "OVER" if ratio >= 1 else ("near" if ratio >= warn else "ok")
             what = f"{lim['share']:.0%} of total" if "share" in lim else money(lim["usd"])
-            print(f"[limits] {mark}: {key} used {money(used)} of {money(cap)} ({ratio:.0%}; limit {what}, {days}d)")
+            extra = ("; nothing attributed to it yet: spend reaches a task only via a journal entry with that "
+                     "first tag, written during the session or <= 30 min after it") if used == 0 else ""
+            print(f"[limits] {mark}: {key} used {money(used)} of {money(cap)} ({ratio:.0%}; limit {what}, {days}d{extra})")
 
 
 def cmd_estimate(a):
@@ -385,6 +396,7 @@ def main(argv=None):
     p.set_defaults(fn=cmd_unset)
     p = sub.add_parser("check")
     p.add_argument("--verbose", action="store_true")
+    p.add_argument("--at", type=int, help="warn from this percent of a limit (default 80)")
     p.set_defaults(fn=cmd_check)
     p = sub.add_parser("estimate")
     p.add_argument("terms", nargs="+")

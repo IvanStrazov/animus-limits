@@ -73,6 +73,13 @@ class LimitsTest(unittest.TestCase):
         self.assertIn("$0.25", out)
         self.assertIn("(no journal) bot", out)
         self.assertNotIn("api ", out)  # only the first tag is the task
+        self.assertIn("14K tokens (14K output", out)
+        self.assertRegex(out, r"parser\s+\$0\.25\s+71%\s+1\s+10K\s+10K")
+        self.run_l("set", "parser", "$0.5")              # 50% used
+        self.assertEqual(self.run_l("check").strip(), "")  # below the default 80%
+        self.assertIn("near: parser", self.run_l("check", "--at", "40"))
+        self.run_l("set", "nothing-yet", "$5")
+        self.assertIn("nothing attributed to it yet", self.run_l("check", "--verbose"))
 
     def test_two_entries_split_a_session(self):
         s = self.now - dt.timedelta(hours=3)

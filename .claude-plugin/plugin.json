@@ -1,6 +1,6 @@
 {
   "name": "animus-limits",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Token spend per task for Claude Code: where your plan limit went (by journal task, project, day, model), per-task limits like 'invest-bot <= 30% of my week', and cost estimates before a big task. Local, stdlib only.",
   "author": {
     "name": "Ivan Strazov",
